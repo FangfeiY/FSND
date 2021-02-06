@@ -161,7 +161,7 @@ source env/bin/activate
 ```
 >**Note** - In Windows, the `env` does not have a `bin` directory. Therefore, you'd use the analogous command shown below:
 ```
-source env/Scripts/activate
+.\env\Scripts\activate
 ```
 
 4. **Install the dependencies:**
