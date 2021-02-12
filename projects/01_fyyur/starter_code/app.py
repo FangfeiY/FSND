@@ -92,27 +92,44 @@ def index():
 def venues():
   # TODO: replace with real venues data.
   #       num_shows should be aggregated based on number of upcoming shows per venue.
-  data=[{
-    "city": "San Francisco",
-    "state": "CA",
-    "venues": [{
-      "id": 1,
-      "name": "The Musical Hop",
-      "num_upcoming_shows": 0,
-    }, {
-      "id": 3,
-      "name": "Park Square Live Music & Coffee",
-      "num_upcoming_shows": 1,
-    }]
-  }, {
-    "city": "New York",
-    "state": "NY",
-    "venues": [{
-      "id": 2,
-      "name": "The Dueling Pianos Bar",
-      "num_upcoming_shows": 0,
-    }]
-  }]
+  # data=[{
+  #   "city": "New York",
+  #   "state": "NY",
+  #   "venues": [{
+  #     "id": 2,
+  #     "name": "The Dueling Pianos Bar",
+  #     "num_upcoming_shows": 0,
+  #   }]
+  # }]
+
+  data =[]
+  # {state: {city: [venue1, venue2, ...]}
+  states = {}
+
+  venues = Venue.query.all()
+
+  for venue in venues:
+    venue_output = {
+        "id": venue.id,
+        "name": venue.name,
+        # Need to implement:
+        "num_upcoming_shows": 0
+    }
+    if venue.state not in states.keys():
+      states[venue.state] = {venue.city: [venue_output]}
+    elif venue.city not in states[venue.state].keys():
+      states[venue.state][venue.city] = [venue_output]
+    else:
+      states[venue.state][venue.city].append(venue_output)
+    
+  for stateName in states:
+    for cityName in states[stateName]:
+      data.append({
+        "city": cityName,
+        "state": stateName,
+        "venues": states[stateName][cityName]
+      })
+
   return render_template('pages/venues.html', areas=data)
 
 @app.route('/venues/search', methods=['POST'])
@@ -269,7 +286,23 @@ def delete_venue(venue_id):
 
   # BONUS CHALLENGE: Implement a button to delete a Venue on a Venue Page, have it so that
   # clicking that button delete it from the db then redirect the user to the homepage
-  return None
+  #return None
+
+  error = False
+  try:
+      venue = Venue.query.get(venue_id)
+      db.session.delete(venue)
+      db.session.commit()
+  except:
+      error = True
+      db.session.rollback()
+  finally:
+      db.session.close()
+
+  if error:
+      abort(500)
+  else:
+      return redirect(url_for('venues'))
 
 #  Artists
 #  ----------------------------------------------------------------
