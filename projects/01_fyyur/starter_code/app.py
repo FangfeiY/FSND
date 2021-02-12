@@ -14,6 +14,7 @@ from flask_wtf import Form
 from forms import *
 from flask_migrate import Migrate
 import sys
+from datetime import date
 #----------------------------------------------------------------------------#
 # App Config.
 #----------------------------------------------------------------------------#
@@ -45,6 +46,7 @@ class Venue(db.Model):
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
     genres = db.Column(db.String(120))
+    shows = db.relationship('Show', backref='at_venue', lazy=True, cascade='all, delete-orphan')
 
 class Artist(db.Model):
     __tablename__ = 'Artist'
@@ -59,8 +61,21 @@ class Artist(db.Model):
     facebook_link = db.Column(db.String(120))
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
+    shows = db.relationship('Show', backref='playing_artist', lazy=True, cascade='all, delete-orphan')
 
 # TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
+class Show(db.Model):
+  __tablename__ = 'Show'
+
+  id = db.Column(db.Integer, primary_key=True)
+  artist_id = db.Column(db.Integer, db.ForeignKey('Artist.id'), nullable=False)
+  venue_id = db.Column(db.Integer, db.ForeignKey('Venue.id'), nullable=False)
+  date = db.Column(db.Date, nullable=False)
+  time = db.Column(db.Time, nullable=False)
+  # AM / PM
+  am = db.Column(db.Boolean, nullable=False, default=True)
+  # Monday, Tuesday, ...
+  day = db.Column(db.String(10), nullable=False)
 
 #----------------------------------------------------------------------------#
 # Filters.
@@ -109,11 +124,12 @@ def venues():
   venues = Venue.query.all()
 
   for venue in venues:
+    #today = date.today().strftime('%Y-%m-%d')
+    upcoming_show_count = Show.query.filter_by(venue_id=venue.id).filter(Show.date >= date.today()).count()
     venue_output = {
         "id": venue.id,
         "name": venue.name,
-        # Need to implement:
-        "num_upcoming_shows": 0
+        "num_upcoming_shows": upcoming_show_count
     }
     if venue.state not in states.keys():
       states[venue.state] = {venue.city: [venue_output]}
