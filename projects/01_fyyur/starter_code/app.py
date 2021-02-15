@@ -5,7 +5,7 @@
 import json
 import dateutil.parser
 import babel
-from flask import Flask, render_template, request, Response, flash, redirect, url_for
+from flask import Flask, render_template, request, Response, flash, redirect, url_for, abort
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
 import logging
@@ -379,16 +379,20 @@ def delete_venue(venue_id):
 @app.route('/artists')
 def artists():
   # TODO: replace with real data returned from querying the database
-  data=[{
-    "id": 4,
-    "name": "Guns N Petals",
-  }, {
-    "id": 5,
-    "name": "Matt Quevedo",
-  }, {
-    "id": 6,
-    "name": "The Wild Sax Band",
-  }]
+  # data=[{
+  #   "id": 4,
+  #   "name": "Guns N Petals",
+  # }]
+
+  data = []
+  artists = Artist.query.all()
+
+  for artist in artists:
+    data.append({
+      "id": artist.id,
+      "name": artist.name
+    })
+
   return render_template('pages/artists.html', artists=data)
 
 @app.route('/artists/search', methods=['POST'])
@@ -549,14 +553,43 @@ def create_artist_form():
 @app.route('/artists/create', methods=['POST'])
 def create_artist_submission():
   # called upon submitting the new artist listing form
-  # TODO: insert form data as a new Venue record in the db, instead
+  # TODO: insert form data as a new Artiist record in the db, instead
   # TODO: modify data to be the data object returned from db insertion
+  error = False
+  genres_list = request.form.getlist('genres')
+  genres_str = ','.join(genres_list)
 
-  # on successful db insert, flash success
-  flash('Artist ' + request.form['name'] + ' was successfully listed!')
-  # TODO: on unsuccessful db insert, flash an error instead.
-  # e.g., flash('An error occurred. Artist ' + data.name + ' could not be listed.')
-  return render_template('pages/home.html')
+  try:
+    artist = Artist(
+      name=request.form.get('name',''),
+      city=request.form.get('city',''),
+      state=request.form.get('state',''),
+      phone=request.form.get('phone',''),
+      genres=genres_str,
+      facebook_link=request.form.get('facebook_link','')
+    )
+
+    db.session.add(artist)
+    db.session.commit()
+
+    # on successful db insert, flash success
+    flash('Artist ' + request.form['name'] + ' was successfully listed!')
+  except:
+    error = True
+    db.session.rollback()
+    print(sys.exc_info())
+    # TODO: on unsuccessful db insert, flash an error instead.
+    # e.g., flash('An error occurred. Artist ' + data.name + ' could not be listed.')
+    flash('An error occurred while adding artist ' + request.form['name'], 'error')
+  finally:
+    db.session.close()
+  
+  if error:
+    abort (500)
+  else:
+    return redirect(url_for('artists'))
+  
+  #return render_template('pages/home.html')
 
 
 #  Shows
