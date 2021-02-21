@@ -60,7 +60,7 @@ class Venue(db.Model):
       #   }]
 
       past_shows_info = []
-      past_shows = Show.query.filter_by(venue_id=self.id).filter(Show.date < date.today()).all()
+      past_shows = Show.query.filter_by(venue_id=self.id).filter(Show.start_time < datetime.today()).all()
 
       for show in past_shows:
         artist = Artist.query.get(show.artist_id)
@@ -68,7 +68,7 @@ class Venue(db.Model):
           "artist_id": show.artist_id,
           "artist_name": artist.name,
           "artist_image_link": artist.image_link,
-          "start_time": datetime.combine(show.date, show.time).isoformat() + 'Z'
+          "start_time": show.start_time.isoformat() + 'Z'
         })
 
       return past_shows_info
@@ -82,7 +82,7 @@ class Venue(db.Model):
       #   }]
 
       upcoming_shows_info = []
-      upcoming_shows = Show.query.filter_by(venue_id=self.id).filter(Show.date >= date.today()).all()
+      upcoming_shows = Show.query.filter_by(venue_id=self.id).filter(Show.start_time >= datetime.today()).all()
 
       for show in upcoming_shows:
         artist = Artist.query.get(show.artist_id)
@@ -90,13 +90,13 @@ class Venue(db.Model):
           "artist_id": show.artist_id,
           "artist_name": artist.name,
           "artist_image_link": artist.image_link,
-          "start_time": datetime.combine(show.date, show.time).isoformat() + 'Z'
+          "start_time": show.start_time.isoformat() + 'Z'
         })
 
       return upcoming_shows_info
 
     def getUpcomingShowCount(self):
-      return Show.query.filter_by(venue_id=self.id).filter(Show.date >= date.today()).count()
+      return Show.query.filter_by(venue_id=self.id).filter(Show.start_time >= datetime.today()).count()
 
 class Artist(db.Model):
     __tablename__ = 'Artist'
@@ -117,7 +117,7 @@ class Artist(db.Model):
     shows = db.relationship('Show', backref='playing_artist', lazy=True, cascade='all, delete-orphan')
 
     def getUpcomingShowCount(self):
-      return Show.query.filter_by(artist_id=self.id).filter(Show.date >= date.today()).count()
+      return Show.query.filter_by(artist_id=self.id).filter(Show.start_time >= datetime.today()).count()
     
     def getPastShowsInfo(self):
       # "past_shows": [{
@@ -127,15 +127,15 @@ class Artist(db.Model):
       #   "start_time": "2019-06-15T23:00:00.000Z"
       #  }]
       past_shows_info = []
-      past_shows = Show.query.filter_by(artist_id=self.id).filter(Show.date < date.today()).all()
+      past_shows = Show.query.filter_by(artist_id=self.id).filter(Show.start_time < datetime.today()).all()
 
       for show in past_shows:
         venue = Venue.query.get(show.venue_id)
         past_shows_info.append({
-          "venue_id": venue.venue_id,
+          "venue_id": venue.id,
           "venue_name": venue.name,
           "venue_image_link": venue.image_link,
-          "start_time": datetime.combine(show.date, show.time).isoformat() + 'Z'
+          "start_time": show.start_time.isoformat() + 'Z'
         })
       return past_shows_info
 
@@ -147,7 +147,7 @@ class Artist(db.Model):
       #   "start_time": "2035-04-01T20:00:00.000Z"
       # }]
       upcoming_shows_info = []
-      upcoming_shows = Show.query.filter_by(artist_id=self.id).filter(Show.date >= date.today()).all()
+      upcoming_shows = Show.query.filter_by(artist_id=self.id).filter(Show.start_time >= datetime.today()).all()
 
       for show in upcoming_shows:
         venue = Venue.query.get(show.venue_id)
@@ -155,7 +155,7 @@ class Artist(db.Model):
           "venue_id": venue.id,
           "venue_name": venue.name,
           "venue_image_link": venue.image_link,
-          "start_time": datetime.combine(show.date, show.time).isoformat() + 'Z'
+          "start_time": show.start_time.isoformat() + 'Z'
         })
       return upcoming_shows_info
 
@@ -166,12 +166,11 @@ class Show(db.Model):
   id = db.Column(db.Integer, primary_key=True)
   artist_id = db.Column(db.Integer, db.ForeignKey('Artist.id'), nullable=False)
   venue_id = db.Column(db.Integer, db.ForeignKey('Venue.id'), nullable=False)
-  date = db.Column(db.Date, nullable=False)
-  time = db.Column(db.Time, nullable=False)
+  start_time = db.Column(db.DateTime())
   # AM / PM
-  am = db.Column(db.Boolean, nullable=False, default=True)
+  am = db.Column(db.Boolean, default=True)
   # Monday, Tuesday, ...
-  day = db.Column(db.String(10), nullable=False)
+  day = db.Column(db.String(10))
 
 #----------------------------------------------------------------------------#
 # Filters.
@@ -706,42 +705,29 @@ def shows():
   # displays list of shows at /shows
   # TODO: replace with real venues data.
   #       num_shows should be aggregated based on number of upcoming shows per venue.
-  data=[{
-    "venue_id": 1,
-    "venue_name": "The Musical Hop",
-    "artist_id": 4,
-    "artist_name": "Guns N Petals",
-    "artist_image_link": "https://images.unsplash.com/photo-1549213783-8284d0336c4f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=300&q=80",
-    "start_time": "2019-05-21T21:30:00.000Z"
-  }, {
-    "venue_id": 3,
-    "venue_name": "Park Square Live Music & Coffee",
-    "artist_id": 5,
-    "artist_name": "Matt Quevedo",
-    "artist_image_link": "https://images.unsplash.com/photo-1495223153807-b916f75de8c5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=334&q=80",
-    "start_time": "2019-06-15T23:00:00.000Z"
-  }, {
-    "venue_id": 3,
-    "venue_name": "Park Square Live Music & Coffee",
-    "artist_id": 6,
-    "artist_name": "The Wild Sax Band",
-    "artist_image_link": "https://images.unsplash.com/photo-1558369981-f9ca78462e61?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=794&q=80",
-    "start_time": "2035-04-01T20:00:00.000Z"
-  }, {
-    "venue_id": 3,
-    "venue_name": "Park Square Live Music & Coffee",
-    "artist_id": 6,
-    "artist_name": "The Wild Sax Band",
-    "artist_image_link": "https://images.unsplash.com/photo-1558369981-f9ca78462e61?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=794&q=80",
-    "start_time": "2035-04-08T20:00:00.000Z"
-  }, {
-    "venue_id": 3,
-    "venue_name": "Park Square Live Music & Coffee",
-    "artist_id": 6,
-    "artist_name": "The Wild Sax Band",
-    "artist_image_link": "https://images.unsplash.com/photo-1558369981-f9ca78462e61?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=794&q=80",
-    "start_time": "2035-04-15T20:00:00.000Z"
-  }]
+  # data=[{
+  #   "venue_id": 1,
+  #   "venue_name": "The Musical Hop",
+  #   "artist_id": 4,
+  #   "artist_name": "Guns N Petals",
+  #   "artist_image_link": "https://images.unsplash.com/photo-1549213783-8284d0336c4f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=300&q=80",
+  #   "start_time": "2019-05-21T21:30:00.000Z"
+  # }]
+
+  data = []
+  shows = Show.query.all()
+  for show in shows:
+    artist = Artist.query.get(show.artist_id)
+    venue = Venue.query.get(show.venue_id)
+    data.append({
+      "venue_id": venue.id,
+      "venue_name": venue.name,
+      "artist_id": artist.id,
+      "artist_name": artist.name,
+      "artist_image_link": artist.image_link,
+      "start_time": show.start_time.isoformat() + 'Z'
+    })
+
   return render_template('pages/shows.html', shows=data)
 
 @app.route('/shows/create')
@@ -754,13 +740,43 @@ def create_shows():
 def create_show_submission():
   # called to create new shows in the db, upon submitting new show listing form
   # TODO: insert form data as a new Show record in the db, instead
+  error = False
+  start_time_str = request.form.get('start_time','')
+  print(start_time_str)
+  print(type(start_time_str))
 
-  # on successful db insert, flash success
-  flash('Show was successfully listed!')
-  # TODO: on unsuccessful db insert, flash an error instead.
-  # e.g., flash('An error occurred. Show could not be listed.')
-  # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
-  return render_template('pages/home.html')
+  start_time = datetime.fromisoformat(start_time_str)
+  # string after strftime(): '2021-02-20 05:45 PM'
+  am_pm = start_time.strftime(f'%Y-%m-%d %I:%M %p').split(' ')[2]
+
+  try:
+    show = Show(
+      artist_id=request.form.get('artist_id',''),
+      venue_id=request.form.get('venue_id',''),
+      start_time=start_time,
+      am= True if am_pm == 'AM' else False,
+      day=start_time.weekday()
+    )
+    db.session.add(show)
+    db.session.commit()
+    # on successful db insert, flash success
+    flash('Show was successfully listed!')
+  except:
+    error = True
+    db.session.rollback()
+    print(sys.exc_info())
+
+    # TODO: on unsuccessful db insert, flash an error instead.
+    # e.g., flash('An error occurred. Show could not be listed.')
+    # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
+    flash('Interal error. Failed to create the show.', 'error')
+  finally:
+    db.session.close()
+  
+  if error:
+    abort (500)
+  else:
+    return redirect(url_for('shows'))
 
 @app.errorhandler(404)
 def not_found_error(error):
