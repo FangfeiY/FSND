@@ -63,11 +63,10 @@ class Venue(db.Model):
       past_shows = Show.query.filter_by(venue_id=self.id).filter(Show.start_time < datetime.today()).all()
 
       for show in past_shows:
-        artist = Artist.query.get(show.artist_id)
         past_shows_info.append({
           "artist_id": show.artist_id,
-          "artist_name": artist.name,
-          "artist_image_link": artist.image_link,
+          "artist_name": show.playing_artist.name,
+          "artist_image_link": show.playing_artist.image_link,
           "start_time": show.start_time.isoformat() + 'Z'
         })
 
@@ -85,11 +84,10 @@ class Venue(db.Model):
       upcoming_shows = Show.query.filter_by(venue_id=self.id).filter(Show.start_time >= datetime.today()).all()
 
       for show in upcoming_shows:
-        artist = Artist.query.get(show.artist_id)
         upcoming_shows_info.append({
           "artist_id": show.artist_id,
-          "artist_name": artist.name,
-          "artist_image_link": artist.image_link,
+          "artist_name": show.playing_artist.name,
+          "artist_image_link": show.playing_artist.image_link,
           "start_time": show.start_time.isoformat() + 'Z'
         })
 
@@ -130,11 +128,10 @@ class Artist(db.Model):
       past_shows = Show.query.filter_by(artist_id=self.id).filter(Show.start_time < datetime.today()).all()
 
       for show in past_shows:
-        venue = Venue.query.get(show.venue_id)
         past_shows_info.append({
-          "venue_id": venue.id,
-          "venue_name": venue.name,
-          "venue_image_link": venue.image_link,
+          "venue_id": show.venue_id,
+          "venue_name": show.at_venue.name,
+          "venue_image_link": show.at_venue.image_link,
           "start_time": show.start_time.isoformat() + 'Z'
         })
       return past_shows_info
@@ -150,11 +147,10 @@ class Artist(db.Model):
       upcoming_shows = Show.query.filter_by(artist_id=self.id).filter(Show.start_time >= datetime.today()).all()
 
       for show in upcoming_shows:
-        venue = Venue.query.get(show.venue_id)
         upcoming_shows_info.append({
-          "venue_id": venue.id,
-          "venue_name": venue.name,
-          "venue_image_link": venue.image_link,
+          "venue_id": show.venue_id,
+          "venue_name": show.at_venue.name,
+          "venue_image_link": show.at_venue.image_link,
           "start_time": show.start_time.isoformat() + 'Z'
         })
       return upcoming_shows_info
