@@ -353,25 +353,19 @@ def create_venue_submission():
   # TODO: insert form data as a new Venue record in the db, instead
   # TODO: modify data to be the data object returned from db insertion
   try:
-    name = request.form.get('name','')
-    city = request.form.get('city','')
-    state = request.form.get('state','')
-    address = request.form.get('address','')
-    phone = request.form.get('phone','')
     genres_list = request.form.getlist('genres')
-    facebook_link = request.form.get('facebook_link','')
-
     genres_str = ','.join(genres_list)
 
     venue = Venue(
-      name=name,
-      city=city,
-      state=state,
-      address=address,
-      phone=phone,
+      name=request.form.get('name',''),
+      city=request.form.get('city',''),
+      state=request.form.get('state',''),
+      address=request.form.get('address',''),
+      phone=request.form.get('phone',''),
       genres=genres_str,
-      facebook_link=facebook_link,
-      seeking_talent=False
+      facebook_link=request.form.get('facebook_link',''),
+      seeking_talent=request.form.get('seeking_artist', type=bool),
+      seeking_description=request.form.get('seeking_description','')
     )
     db.session.add(venue)
     db.session.commit()
@@ -667,7 +661,9 @@ def create_artist_submission():
       state=request.form.get('state',''),
       phone=request.form.get('phone',''),
       genres=genres_str,
-      facebook_link=request.form.get('facebook_link','')
+      facebook_link=request.form.get('facebook_link',''),
+      seeking_venue=request.form.get('seeking_venue', type=bool),
+      seeking_description=request.form.get('seeking_description','')
     )
 
     db.session.add(artist)
