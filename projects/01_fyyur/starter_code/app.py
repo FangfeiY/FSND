@@ -49,6 +49,7 @@ class Venue(db.Model):
     website = db.Column(db.String(120))
     seeking_talent = db.Column(db.Boolean, default=False)
     seeking_description = db.Column(db.String)
+    listed_time = db.Column(db.DateTime())
     shows = db.relationship('Show', backref='at_venue', lazy=True, cascade='all, delete-orphan')
 
     def getPastShowsInfo(self):
@@ -112,6 +113,7 @@ class Artist(db.Model):
     website = db.Column(db.String(120))
     seeking_venue = db.Column(db.Boolean, default=False)
     seeking_description = db.Column(db.String)
+    listed_time = db.Column(db.DateTime())
     shows = db.relationship('Show', backref='playing_artist', lazy=True, cascade='all, delete-orphan')
 
     def getUpcomingShowCount(self):
@@ -188,7 +190,9 @@ app.jinja_env.filters['datetime'] = format_datetime
 
 @app.route('/')
 def index():
-  return render_template('pages/home.html')
+  recent_venues = Venue.query.order_by(Venue.listed_time.desc()).limit(10).all()
+  recent_artists = Artist.query.order_by(Artist.listed_time.desc()).limit(10).all()
+  return render_template('pages/home.html', venues=recent_venues, artists=recent_artists)
 
 
 #  Venues
@@ -365,7 +369,8 @@ def create_venue_submission():
       genres=genres_str,
       facebook_link=request.form.get('facebook_link',''),
       seeking_talent=request.form.get('seeking_artist', type=bool),
-      seeking_description=request.form.get('seeking_description','')
+      seeking_description=request.form.get('seeking_description',''),
+      listed_time=datetime.today()
     )
     db.session.add(venue)
     db.session.commit()
@@ -381,7 +386,7 @@ def create_venue_submission():
   finally:
     db.session.close()
 
-  return render_template('pages/home.html')
+  return redirect(url_for('index'))
 
 @app.route('/venues/<venue_id>', methods=['DELETE'])
 def delete_venue(venue_id):
@@ -663,7 +668,8 @@ def create_artist_submission():
       genres=genres_str,
       facebook_link=request.form.get('facebook_link',''),
       seeking_venue=request.form.get('seeking_venue', type=bool),
-      seeking_description=request.form.get('seeking_description','')
+      seeking_description=request.form.get('seeking_description',''),
+      listed_time=datetime.today()
     )
 
     db.session.add(artist)
@@ -684,11 +690,8 @@ def create_artist_submission():
   if error:
     abort (500)
   else:
-    return redirect(url_for('artists'))
+    return redirect(url_for('index'))
   
-  #return render_template('pages/home.html')
-
-
 #  Shows
 #  ----------------------------------------------------------------
 
