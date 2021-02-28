@@ -402,9 +402,11 @@ def delete_venue(venue_id):
       venue = Venue.query.get(venue_id)
       db.session.delete(venue)
       db.session.commit()
+      flash('Venue ' + venue.name + ' was deleted!')
   except:
       error = True
       db.session.rollback()
+      flash('An error occurred while deleting venue ' + venue.name, 'error')
   finally:
       db.session.close()
 
