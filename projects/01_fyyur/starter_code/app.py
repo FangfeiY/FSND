@@ -61,8 +61,9 @@ class Venue(db.Model):
       #   }]
 
       past_shows_info = []
-      past_shows = Show.query.filter_by(venue_id=self.id).filter(Show.start_time < datetime.today()).all()
-
+      past_shows = Show.query.join(Venue).filter(Show.venue_id==self.id).filter(Show.start_time < datetime.today()).all()
+      # Alternative: Show.query.filter_by(venue_id=self.id).filter(Show.start_time < datetime.today()).all()
+                  
       for show in past_shows:
         past_shows_info.append({
           "artist_id": show.artist_id,
@@ -82,7 +83,8 @@ class Venue(db.Model):
       #   }]
 
       upcoming_shows_info = []
-      upcoming_shows = Show.query.filter_by(venue_id=self.id).filter(Show.start_time >= datetime.today()).all()
+      upcoming_shows = Show.query.join(Venue).filter(Show.venue_id==self.id).filter(Show.start_time >= datetime.today()).all()
+      # Alternative: Show.query.filter_by(venue_id=self.id).filter(Show.start_time >= datetime.today()).all()
 
       for show in upcoming_shows:
         upcoming_shows_info.append({
@@ -95,7 +97,8 @@ class Venue(db.Model):
       return upcoming_shows_info
 
     def getUpcomingShowCount(self):
-      return Show.query.filter_by(venue_id=self.id).filter(Show.start_time >= datetime.today()).count()
+      return Show.query.join(Venue).filter(Show.venue_id==self.id).filter(Show.start_time >= datetime.today()).count()
+      # Alternative: Show.query.filter_by(venue_id=self.id).filter(Show.start_time >= datetime.today()).count()
 
 class Artist(db.Model):
     __tablename__ = 'Artist'
@@ -117,8 +120,9 @@ class Artist(db.Model):
     shows = db.relationship('Show', backref='playing_artist', lazy=True, cascade='all, delete-orphan')
 
     def getUpcomingShowCount(self):
-      return Show.query.filter_by(artist_id=self.id).filter(Show.start_time >= datetime.today()).count()
-    
+      return Show.query.join(Artist).filter(Show.artist_id==self.id).filter(Show.start_time >= datetime.today()).count()
+      # Alternative: Show.query.filter_by(artist_id=self.id).filter(Show.start_time >= datetime.today()).count()
+
     def getPastShowsInfo(self):
       # "past_shows": [{
       #   "venue_id": 3,
@@ -127,7 +131,8 @@ class Artist(db.Model):
       #   "start_time": "2019-06-15T23:00:00.000Z"
       #  }]
       past_shows_info = []
-      past_shows = Show.query.filter_by(artist_id=self.id).filter(Show.start_time < datetime.today()).all()
+      past_shows = Show.query.join(Artist).filter(Show.artist_id==self.id).filter(Show.start_time < datetime.today()).all()
+      # Alternative: Show.query.filter_by(artist_id=self.id).filter(Show.start_time < datetime.today()).all()
 
       for show in past_shows:
         past_shows_info.append({
@@ -146,7 +151,8 @@ class Artist(db.Model):
       #   "start_time": "2035-04-01T20:00:00.000Z"
       # }]
       upcoming_shows_info = []
-      upcoming_shows = Show.query.filter_by(artist_id=self.id).filter(Show.start_time >= datetime.today()).all()
+      upcoming_shows = Show.query.join(Artist).filter(Show.artist_id==self.id).filter(Show.start_time >= datetime.today()).all()
+      # Alternative: Show.query.filter_by(artist_id=self.id).filter(Show.start_time >= datetime.today()).all()
 
       for show in upcoming_shows:
         upcoming_shows_info.append({
@@ -356,6 +362,16 @@ def create_venue_form():
 def create_venue_submission():
   # TODO: insert form data as a new Venue record in the db, instead
   # TODO: modify data to be the data object returned from db insertion
+  form = VenueForm()
+  if form.validate_on_submit():
+    return create_venue()
+  else:
+    for error in form.errors:
+      flash(error)
+    return render_template('forms/new_venue.html', form=form)
+
+def create_venue():
+  error = False
   try:
     venue = Venue(
       name=request.form.get('name',''),
@@ -374,6 +390,7 @@ def create_venue_submission():
     # on successful db insert, flash success
     flash('Venue ' + request.form['name'] + ' was successfully listed!')
   except:
+    error=True
     db.session.rollback()
     print(sys.exc_info())
     # TODO: on unsuccessful db insert, flash an error instead.
@@ -383,7 +400,10 @@ def create_venue_submission():
   finally:
     db.session.close()
 
-  return redirect(url_for('index'))
+  if error:
+    abort(500)
+  else:
+    return redirect(url_for('index'))
 
 @app.route('/venues/<venue_id>', methods=['DELETE'])
 def delete_venue(venue_id):
