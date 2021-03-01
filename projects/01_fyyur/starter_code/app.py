@@ -45,7 +45,7 @@ class Venue(db.Model):
     facebook_link = db.Column(db.String(120))
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
-    genres = db.Column(db.String(120))
+    genres = db.Column(db.ARRAY(db.String), nullable=False)
     website = db.Column(db.String(120))
     seeking_talent = db.Column(db.Boolean, default=False)
     seeking_description = db.Column(db.String)
@@ -105,7 +105,7 @@ class Artist(db.Model):
     city = db.Column(db.String(120))
     state = db.Column(db.String(120))
     phone = db.Column(db.String(120))
-    genres = db.Column(db.String(120))
+    genres = db.Column(db.ARRAY(db.String), nullable=False)
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
 
@@ -324,7 +324,7 @@ def show_venue(venue_id):
   data={
     "id": venue.id,
     "name": venue.name,
-    "genres": "" if venue.genres is None else venue.genres.split(','),
+    "genres": venue.genres,
     "address": venue.address,
     "city": venue.city,
     "state": venue.state,
@@ -357,16 +357,13 @@ def create_venue_submission():
   # TODO: insert form data as a new Venue record in the db, instead
   # TODO: modify data to be the data object returned from db insertion
   try:
-    genres_list = request.form.getlist('genres')
-    genres_str = ','.join(genres_list)
-
     venue = Venue(
       name=request.form.get('name',''),
       city=request.form.get('city',''),
       state=request.form.get('state',''),
       address=request.form.get('address',''),
       phone=request.form.get('phone',''),
-      genres=genres_str,
+      genres=request.form.getlist('genres'),
       facebook_link=request.form.get('facebook_link',''),
       seeking_talent=request.form.get('seeking_artist', type=bool),
       seeking_description=request.form.get('seeking_description',''),
@@ -503,7 +500,7 @@ def show_artist(artist_id):
   data = {
     "id": artist.id,
     "name": artist.name,
-    "genres": "" if artist.genres is None else artist.genres.split(','),
+    "genres": artist.genres,
     "city": artist.city,
     "state": artist.state,
     "phone": artist.phone,
@@ -554,15 +551,12 @@ def edit_artist_submission(artist_id):
   # TODO: take values from the form submitted, and update existing
   # artist record with ID <artist_id> using the new attributes
   error = False
-  genres_list = request.form.getlist('genres')
-  genres_str = ','.join(genres_list)
-
   artist = Artist.query.get(artist_id)
   artist.name = request.form.get('name','')
   artist.city = request.form.get('city','')
   artist.state = request.form.get('state','')
   artist.phone = request.form.get('phone','')
-  artist.genres = genres_str
+  artist.genres = request.form.getlist('genres')
   artist.facebook_link = request.form.get('facebook_link','')
 
   try:
@@ -616,16 +610,13 @@ def edit_venue_submission(venue_id):
   # TODO: take values from the form submitted, and update existing
   # venue record with ID <venue_id> using the new attributes
   error = False
-  genres_list = request.form.getlist('genres')
-  genres_str = ','.join(genres_list)
-
   venue = Venue.query.get(venue_id)
   venue.name = request.form.get('name','')
   venue.city = request.form.get('city','')
   venue.state = request.form.get('state','')
   venue.address = request.form.get('address','')
   venue.phone = request.form.get('phone','')
-  venue.genres = genres_str
+  venue.genres = request.form.getlist('genres')
   venue.facebook_link = request.form.get('facebook_link','')
 
   try:
@@ -658,16 +649,13 @@ def create_artist_submission():
   # TODO: insert form data as a new Artiist record in the db, instead
   # TODO: modify data to be the data object returned from db insertion
   error = False
-  genres_list = request.form.getlist('genres')
-  genres_str = ','.join(genres_list)
-
   try:
     artist = Artist(
       name=request.form.get('name',''),
       city=request.form.get('city',''),
       state=request.form.get('state',''),
       phone=request.form.get('phone',''),
-      genres=genres_str,
+      genres=request.form.getlist('genres'),
       facebook_link=request.form.get('facebook_link',''),
       seeking_venue=request.form.get('seeking_venue', type=bool),
       seeking_description=request.form.get('seeking_description',''),
