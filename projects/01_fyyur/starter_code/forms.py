@@ -1,16 +1,18 @@
 from datetime import datetime
 from flask_wtf import Form
 from wtforms import StringField, SelectField, SelectMultipleField, DateTimeField, BooleanField
-from wtforms.validators import DataRequired, AnyOf, URL, Regexp, Optional
+from wtforms.validators import DataRequired, AnyOf, URL, Regexp, Optional, ValidationError
+from datetime import datetime
 
 phone_pattern = f"^[0-9]{{3}}-[0-9]{{3}}-[0-9]{{4}}$"
+id_pattern = f"[0-9]+"
 
 class ShowForm(Form):
     artist_id = StringField(
-        'artist_id'
+        'artist_id', validators=[DataRequired(), Regexp(id_pattern)]
     )
     venue_id = StringField(
-        'venue_id'
+        'venue_id', validators=[DataRequired(), Regexp(id_pattern)]
     )
     start_time = DateTimeField(
         'start_time',

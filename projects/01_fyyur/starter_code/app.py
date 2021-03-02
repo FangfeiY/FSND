@@ -678,7 +678,7 @@ def create_artist_submission():
   
   # Input passes validation:
   return create_artist()
-  
+
 def create_artist():
   error = False
   try:
@@ -748,7 +748,7 @@ def shows():
   return render_template('pages/shows.html', shows=data)
 
 @app.route('/shows/create')
-def create_shows():
+def create_shows_form():
   # renders form. do not touch.
   form = ShowForm()
   return render_template('forms/new_show.html', form=form)
@@ -757,6 +757,16 @@ def create_shows():
 def create_show_submission():
   # called to create new shows in the db, upon submitting new show listing form
   # TODO: insert form data as a new Show record in the db, instead
+
+  form = ShowForm()
+  if not form.validate_on_submit():
+    for error in form.errors:
+      flash(error)
+    return render_template('forms/new_show.html', form=form)
+  
+  return create_show()
+  
+def create_show():
   error = False
   start_time_str = request.form.get('start_time','')
   print(start_time_str)
