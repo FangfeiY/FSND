@@ -190,10 +190,10 @@ class ArtistForm(Form):
     )
     phone = StringField(
         # TODO implement validation logic for state
-        'phone', validators=[Regexp(phone_pattern)]
+        'phone', validators=[DataRequired(), Regexp(phone_pattern, message='Please enter phone number in correct format (xxx-xxx-xxxx).')]
     )
     image_link = StringField(
-        'image_link'
+        'image_link', validators=[Optional(), URL()]
     )
     genres = SelectMultipleField(
         # TODO implement enum restriction
@@ -222,7 +222,7 @@ class ArtistForm(Form):
     )
     facebook_link = StringField(
         # TODO implement enum restriction
-        'facebook_link', validators=[URL()]
+        'facebook_link', validators=[Optional(), URL()]
     )
     seeking_venue = BooleanField(
         'seeking_venue', default=False

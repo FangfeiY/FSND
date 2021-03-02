@@ -668,6 +668,18 @@ def create_artist_submission():
   # called upon submitting the new artist listing form
   # TODO: insert form data as a new Artiist record in the db, instead
   # TODO: modify data to be the data object returned from db insertion
+  
+  # Input fails validation:
+  form = ArtistForm()
+  if not form.validate_on_submit():
+    for error in form.errors:
+      flash(error)
+    return render_template('forms/new_artist.html', form=form)
+  
+  # Input passes validation:
+  return create_artist()
+  
+def create_artist():
   error = False
   try:
     artist = Artist(
