@@ -126,6 +126,9 @@ class VenueForm(Form):
     seeking_description = StringField(
         'seeking_description'
     )
+    website = StringField(
+        'website', validators=[Optional(), URL()]
+    )
 
 class ArtistForm(Form):
     name = StringField(
@@ -232,5 +235,9 @@ class ArtistForm(Form):
     seeking_description = StringField(
         'seeking_description'
     )
+    website = StringField(
+        'website', validators=[Optional(), URL()]
+    )
+    
 
 # TODO IMPLEMENT NEW ARTIST FORM AND NEW SHOW FORM

@@ -381,6 +381,7 @@ def create_venue():
       phone=request.form.get('phone',''),
       genres=request.form.getlist('genres'),
       facebook_link=request.form.get('facebook_link',''),
+      website=request.form.get('website',''),
       seeking_talent=request.form.get('seeking_artist', type=bool),
       seeking_description=request.form.get('seeking_description',''),
       listed_time=datetime.today()
@@ -563,6 +564,7 @@ def edit_artist_form(artist_id):
   form.phone.data = artist.phone
   form.genres.data = artist.genres
   form.facebook_link.data = artist.facebook_link
+  form.website.data = artist.website
   form.seeking_venue.data = artist.seeking_venue
   form.seeking_description.data = artist.seeking_description
 
@@ -590,6 +592,7 @@ def edit_artist(artist_id):
   artist.phone = request.form.get('phone','')
   artist.genres = request.form.getlist('genres')
   artist.facebook_link = request.form.get('facebook_link','')
+  artist.website = request.form.get('website','')
   artist.seeking_venue = request.form.get('seeking_venue', type=bool)
   artist.seeking_description = request.form.get('seeking_description','')
 
@@ -636,6 +639,7 @@ def edit_venue_form(venue_id):
   form.phone.data = venue.phone
   form.genres.data = venue.genres
   form.facebook_link.data = venue.facebook_link
+  form.website.data = venue.website
   form.seeking_artist.data = venue.seeking_talent
   form.seeking_description.data = venue.seeking_description
 
@@ -664,6 +668,7 @@ def edit_venue(venue_id):
   venue.phone = request.form.get('phone','')
   venue.genres = request.form.getlist('genres')
   venue.facebook_link = request.form.get('facebook_link','')
+  venue.website = request.form.get('website','')
   venue.seeking_talent = request.form.get('seeking_artist', type=bool)
   venue.seeking_description = request.form.get('seeking_description','')
 
@@ -717,6 +722,7 @@ def create_artist():
       phone=request.form.get('phone',''),
       genres=request.form.getlist('genres'),
       facebook_link=request.form.get('facebook_link',''),
+      website=request.form.get('website',''),
       seeking_venue=request.form.get('seeking_venue', type=bool),
       seeking_description=request.form.get('seeking_description',''),
       listed_time=datetime.today()
