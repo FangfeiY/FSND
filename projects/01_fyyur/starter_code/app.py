@@ -539,7 +539,7 @@ def show_artist(artist_id):
 #  Update
 #  ----------------------------------------------------------------
 @app.route('/artists/<int:artist_id>/edit', methods=['GET'])
-def edit_artist(artist_id):
+def edit_artist_form(artist_id):
   form = ArtistForm()
   # artist={
   #   "id": 4,
@@ -561,8 +561,10 @@ def edit_artist(artist_id):
   form.city.data = artist.city
   form.state.data = artist.state
   form.phone.data = artist.phone
-  form.genres.data = [] if artist.genres is None else artist.genres.split(',')
+  form.genres.data = artist.genres
   form.facebook_link.data = artist.facebook_link
+  form.seeking_venue.data = artist.seeking_venue
+  form.seeking_description.data = artist.seeking_description
 
   return render_template('forms/edit_artist.html', form=form, artist=artist)
 
@@ -570,6 +572,16 @@ def edit_artist(artist_id):
 def edit_artist_submission(artist_id):
   # TODO: take values from the form submitted, and update existing
   # artist record with ID <artist_id> using the new attributes
+  form = ArtistForm()
+  if not form.validate_on_submit():
+    for error in form.errors:
+      flash(error)
+    artist = Artist.query.get(artist_id)
+    return render_template('forms/edit_artist.html', form=form, artist=artist)
+  
+  return edit_artist(artist_id)
+
+def edit_artist(artist_id):
   error = False
   artist = Artist.query.get(artist_id)
   artist.name = request.form.get('name','')
@@ -578,6 +590,8 @@ def edit_artist_submission(artist_id):
   artist.phone = request.form.get('phone','')
   artist.genres = request.form.getlist('genres')
   artist.facebook_link = request.form.get('facebook_link','')
+  artist.seeking_venue = request.form.get('seeking_venue', type=bool)
+  artist.seeking_description = request.form.get('seeking_description','')
 
   try:
     db.session.commit()
@@ -596,7 +610,7 @@ def edit_artist_submission(artist_id):
     return redirect(url_for('show_artist', artist_id=artist_id))
 
 @app.route('/venues/<int:venue_id>/edit', methods=['GET'])
-def edit_venue(venue_id):
+def edit_venue_form(venue_id):
   form = VenueForm()
   # venue={
   #   "id": 1,
@@ -620,8 +634,10 @@ def edit_venue(venue_id):
   form.state.data = venue.state
   form.address.data = venue.address
   form.phone.data = venue.phone
-  form.genres.data = [] if venue.genres is None else venue.genres.split(',')
+  form.genres.data = venue.genres
   form.facebook_link.data = venue.facebook_link
+  form.seeking_artist.data = venue.seeking_talent
+  form.seeking_description.data = venue.seeking_description
 
   return render_template('forms/edit_venue.html', form=form, venue=venue)
 
@@ -629,6 +645,16 @@ def edit_venue(venue_id):
 def edit_venue_submission(venue_id):
   # TODO: take values from the form submitted, and update existing
   # venue record with ID <venue_id> using the new attributes
+  form = VenueForm()
+  if not form.validate_on_submit():
+    for error in form.errors:
+      flash(error)
+    venue = Venue.query.get(venue_id)
+    return render_template('forms/edit_venue.html', form=form, venue=venue)
+
+  return edit_venue(venue_id)
+
+def edit_venue(venue_id):
   error = False
   venue = Venue.query.get(venue_id)
   venue.name = request.form.get('name','')
@@ -638,6 +664,8 @@ def edit_venue_submission(venue_id):
   venue.phone = request.form.get('phone','')
   venue.genres = request.form.getlist('genres')
   venue.facebook_link = request.form.get('facebook_link','')
+  venue.seeking_talent = request.form.get('seeking_artist', type=bool)
+  venue.seeking_description = request.form.get('seeking_description','')
 
   try:
     db.session.commit()
@@ -765,7 +793,7 @@ def create_show_submission():
     return render_template('forms/new_show.html', form=form)
   
   return create_show()
-  
+
 def create_show():
   error = False
   start_time_str = request.form.get('start_time','')
