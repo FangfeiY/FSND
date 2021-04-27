@@ -11,9 +11,11 @@ QUESTIONS_PER_PAGE = 10
 def create_app(test_config=None):
   # create and configure the app
   app = Flask(__name__)
+  print(__name__)
+
   setup_db(app)
 
-  #int current_cate = None
+  current_cate = None
   
   '''
   @TODO: Set up CORS. Allow '*' for origins. Delete the sample route after completing the TODOs
@@ -29,6 +31,11 @@ def create_app(test_config=None):
       response.headers.add('Access-Control-Allow-Methods', 'GET,PATCH,POST,DELETE,OPTIONS')
       return response
 
+
+  @app.route('/')
+  def index():
+    return "Hello! Welcome to the trivia app!"
+    
   '''
   @TODO: 
   Create an endpoint to handle GET requests 
@@ -61,11 +68,9 @@ def create_app(test_config=None):
     start =  (page - 1) * QUESTIONS_PER_PAGE
     end = start + QUESTIONS_PER_PAGE
 
-    # questions = [question.format() for question in selection]
-    # paginate_questions = questions[start:end]
-    # return paginate_questions
-
-    return selection[start:end]
+    questions = [question.format() for question in selection]
+    paginate_questions = questions[start:end]
+    return paginate_questions
 
   @app.route('/questions')
   def get_questions_paged():
@@ -165,7 +170,7 @@ def create_app(test_config=None):
         'success': True,
         'questions': format_ques,
         'total_questions': len(format_ques),
-        'current_category': current_cate
+        'current_category': 1 if current_cate is None else current_cate
       })
 
     except:
@@ -183,13 +188,16 @@ def create_app(test_config=None):
   def get_by_cate(cate_id):
     try:
       category = Category.query.get(cate_id)
+      format_ques = [question.format() for question in category.questions]
+      
+      current_cate = category.id
 
       if category is None:
         abort(404)
       
       return jsonify({
             'success': True,
-            'questions': category.questions,
+            'questions': format_ques,
             'total_questions': len(category.questions),
             'current_category': category.id})
     except:
@@ -206,22 +214,28 @@ def create_app(test_config=None):
   one question at a time is displayed, the user is allowed to answer
   and shown whether they were correct or not. 
   '''
-  @app.route('/quzzies', methods=['POST'])
+  @app.route('/quizzes', methods=['POST'])
   def get_next_question():
     try:
       body = request.get_json()
+
       # previous_ques is a list of question IDs
       previous_ques = body.get('previous_questions', None)
       previous_ques = [int(ques_id) for ques_id in previous_ques]
+      previous_ques = set(previous_ques)
 
-      quiz_category = int(body.get('quiz_category', None))
+      # quiz_category = {'type': 'Science', 'id': '1'}
+      quiz_category = body.get('quiz_category', None)
+      quiz_cate_id = int(quiz_category.get('id'))
 
-      category = Category.query.get(quiz_category)
+      category = Category.query.get(quiz_cate_id)
+      ques_list_copy = category.questions.copy()
+      random.shuffle(ques_list_copy)
 
-      for question in shuffle(category.questions.copy()):
+      for question in ques_list_copy:
         if question.id not in previous_ques:
           next_question = question
-      
+
       return jsonify({
         'success': True,
         'question': next_question.format()
