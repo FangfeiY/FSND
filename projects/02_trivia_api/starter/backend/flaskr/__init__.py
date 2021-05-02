@@ -74,21 +74,18 @@ def create_app(test_config=None):
 
   @app.route('/questions')
   def get_questions_paged():
-    try:
-      questions = Question.query.order_by(Question.id).all()
-      paged_questions = paginate_questions(request, questions)
+    questions = Question.query.order_by(Question.id).all()
+    paged_questions = paginate_questions(request, questions)
 
-      if len(paged_questions) == 0:
-        abort(404)
+    if len(paged_questions) == 0:
+      abort(422)
 
-      return jsonify({
-            'success':True,
-            'questions': paged_questions,
-            'total_questions': len(questions),
-            'categories': Category.get_all(),
-            'current_category': None })
-    except:
-      abort(500)
+    return jsonify({
+          'success':True,
+          'questions': paged_questions,
+          'total_questions': len(questions),
+          'categories': Category.get_all(),
+          'current_category': None })
 
   '''
   @TODO: 
@@ -99,19 +96,16 @@ def create_app(test_config=None):
   '''
   @app.route('/questions/<int:ques_id>', methods=['DELETE'])
   def del_question(ques_id):
-    try:
-      question = Question.query.get(ques_id)
+    question = Question.query.filter(Question.id == ques_id).one_or_none()
 
-      if question is None:
-        abort(404)
+    if question is None:
+      abort(404)
 
-      question.delete()
+    question.delete()
 
-      return jsonify({
-        'success': True
-      })
-    except:
-      abort(422)
+    return jsonify({
+      'success': True
+    })
 
   '''
   @TODO: 
@@ -131,7 +125,7 @@ def create_app(test_config=None):
         question = body.get('question', None),
         answer = body.get('answer', None),
         difficulty = body.get('difficulty', None),
-        category = int(body.get('category', None))
+        category = body.get('category', 1)
       )
 
       new_question.insert()
@@ -186,22 +180,19 @@ def create_app(test_config=None):
   '''
   @app.route('/categories/<int:cate_id>/questions')
   def get_by_cate(cate_id):
-    try:
-      category = Category.query.get(cate_id)
-      format_ques = [question.format() for question in category.questions]
-      
-      current_cate = category.id
+    category = Category.query.filter(Category.id == cate_id).one_or_none()
 
-      if category is None:
-        abort(404)
-      
-      return jsonify({
-            'success': True,
-            'questions': format_ques,
-            'total_questions': len(category.questions),
-            'current_category': category.id})
-    except:
-      abort(500)
+    if category is None:
+      abort(404)
+
+    format_ques = [question.format() for question in category.questions]
+    current_cate = category.id
+    
+    return jsonify({
+          'success': True,
+          'questions': format_ques,
+          'total_questions': len(category.questions),
+          'current_category': category.id})
 
   '''
   @TODO: 
@@ -232,17 +223,19 @@ def create_app(test_config=None):
       ques_list_copy = category.questions.copy()
       random.shuffle(ques_list_copy)
 
+      next_question = None
       for question in ques_list_copy:
         if question.id not in previous_ques:
           next_question = question
+          break
 
       return jsonify({
         'success': True,
-        'question': next_question.format()
+        'question': None if next_question is None else next_question.format()
       })
-
+      
     except:
-      abort(422)
+      abort(500)
 
   '''
   @TODO: 
@@ -274,7 +267,7 @@ def create_app(test_config=None):
     }), 422
 
   @app.errorhandler(500)
-  def unprocessable(error):
+  def internal_server_error(error):
     return jsonify({
         'success': False,
         'error': 500,
