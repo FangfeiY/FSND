@@ -215,6 +215,13 @@ def create_app(test_config=None):
       previous_ques = [int(ques_id) for ques_id in previous_ques]
       previous_ques = set(previous_ques)
 
+      # per game mechanism, users can play up to five questions of the chosen category at a time
+      if len(previous_ques) == 5:
+        return jsonify({
+          'success': True,
+          'question': None
+        })
+
       # quiz_category = {'type': 'Science', 'id': '1'}
       quiz_category = body.get('quiz_category', None)
       quiz_cate_id = int(quiz_category.get('id'))
@@ -228,12 +235,14 @@ def create_app(test_config=None):
         if question.id not in previous_ques:
           next_question = question
           break
-
+      
+      # per game michanism, if there are fewer than five questions in a category, 
+      # the game will end when there are no more questions in that category
       return jsonify({
         'success': True,
         'question': None if next_question is None else next_question.format()
       })
-      
+
     except:
       abort(500)
 
