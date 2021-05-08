@@ -2,12 +2,14 @@ import os
 from sqlalchemy import Column, String, Integer, create_engine
 from flask_sqlalchemy import SQLAlchemy
 import json
+import os
 
 database_name = "trivia"
+POSTGRES_USER = os.environ.get("POSTGRES_USER")
+POSTGRES_PASS = os.environ.get("POSTGRES_PASS")
 
-# When submitting, use the first path that has no user name or password.
 #database_path = "postgres://{}/{}".format('localhost:5432', database_name)
-database_path = "postgres://postgres:postgres@{}/{}".format('localhost:5432', database_name)
+database_path = f"postgres://{POSTGRES_USER}:{POSTGRES_PASS}@localhost:5432/{database_name}"
 
 db = SQLAlchemy()
 
