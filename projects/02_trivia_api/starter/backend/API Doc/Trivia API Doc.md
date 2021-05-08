@@ -29,7 +29,7 @@ The API will return the following types of errors should the requests fail:
 - Purpose: Returns a list of question categories and success value.
 - Sample: ```curl http://127.0.0.1:5000/categories```
 
-- ```
+```
 Respond{
     'success': True,
     'categories':[
@@ -37,7 +37,6 @@ Respond{
         {'2': 'Art'}
     ]
 }
-
 ```
 
 ### GET /questions
@@ -46,7 +45,7 @@ Respond{
     - Returned questions are paginated in groups of 10, based on the page parameter attached to the request. The default page parameter is 1.
 - Sample: ```curl http://127.0.0.1:5000/questions?page=1```
 
-- ```
+```
 Respond{
     'success':True,
     'questions': [
@@ -69,7 +68,7 @@ Respond{
 ### DELETE /questions/{question_id}
 - Purpose: Deletes the question of the given ID if it exists. Returns the success value.
 - Sample: ```curl -X DELETE http://127.0.0.1:5000/questions/1```
-- ```
+```
 Respond{
     'success': True
 }
@@ -78,7 +77,7 @@ Respond{
 ### POST /questions
 - Purpose: Creates a new question using the submitted question description, answer, category, and difficulty. Returns the success value.
 - Sample: ```curl http://127.0.0.1:5000/questions -X POST -H 'Content-Type: application/json' -d '{"question": "When was iPhone born?", "answer": "2007", "category": "1", "difficulty": "1"}' ```
-- ```
+```
 Respond{
     'success': True
 }
@@ -87,7 +86,7 @@ Respond{
 ### POST /questions/search
 - Purpose: Search the questions containing the submitted search term. Returns all qualifying questions, number of questions in the search results, current category, and the success value.
 - Sample: ```curl http://127.0.0.1:5000/questions/search -X POST -H 'Content-Type: application/json' -d '{"searchTerm": "Python"}' ```
-- ```
+```
 Respond{
     'success': True,
     'questions': [{
@@ -105,7 +104,7 @@ Respond{
 ### GET /categories/{category_id}/questions
 - Purpose: Returns a list of questions of the specified category, number of questions in this category, the selected category, and the success value.
 - Sample: ```curl http://127.0.0.1:5000/categories/1/questions```
-- ```
+```
 Respond{
     'success': True,
     'questions': [{
@@ -127,7 +126,7 @@ Respond{
     - Returns a random question within the given category, and that is not one of the previous questions.
     - Returns null to indicate the end of the quiz in the following circumstances: 1)Users have played five questions of the chosen category; 2) There are fewer than five questions in the category.
 - Sample: ```curl http://127.0.0.1:5000/quizzes -X POST -H 'Content-Type: application/json' -d '{"previous_questions": [1, 2, 3], "quiz_category": {"type": "Science", "id": 1}}' ```
-- ```
+```
 Respond{
     'success': True,
     'question': {
