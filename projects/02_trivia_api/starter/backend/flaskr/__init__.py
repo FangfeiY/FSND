@@ -226,8 +226,15 @@ def create_app(test_config=None):
       quiz_category = body.get('quiz_category', None)
       quiz_cate_id = int(quiz_category.get('id'))
 
-      category = Category.query.get(quiz_cate_id)
-      ques_list_copy = category.questions.copy()
+      
+      if quiz_cate_id == 0:
+        # "All" option
+        ques_list_copy = Question.query.all()
+      else:
+        # Specific category
+        category = Category.query.get(quiz_cate_id)
+        ques_list_copy = category.questions.copy()
+
       random.shuffle(ques_list_copy)
 
       next_question = None
