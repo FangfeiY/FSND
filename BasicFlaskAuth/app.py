@@ -104,21 +104,43 @@ def verify_decode_jwt(token):
                 'description': 'Unable to find the appropriate key.'
             }, 400)
 
+def requires_auth_permission(required_permission=''):
+    def requires_auth(f):
+        @wraps(f)
+        def wrapper(*args, **kwargs):
+            token = get_token_auth_header()
+            try:
+                payload = verify_decode_jwt(token)
+            except:
+                abort(401)
 
-def requires_auth(f):
-    @wraps(f)
-    def wrapper(*args, **kwargs):
-        token = get_token_auth_header()
-        try:
-            payload = verify_decode_jwt(token)
-        except:
-            abort(401)
-        return f(payload, *args, **kwargs)
+            check_permissions(required_permission, payload)
+            return f(payload, *args, **kwargs)
 
-    return wrapper
+        return wrapper
+    return requires_auth
+
+def check_permissions(required_permission, payload):
+    if 'permissions' not in payload:
+        raise AuthError({
+            'code': 'invalid_claims',
+            'description': 'Permissions not included in JWT.'
+        }, 400)
+
+    if required_permission not in payload['permissions']:
+        raise AuthError({
+            'code': 'unauthorized',
+            'description': 'Permission not found.'
+        }, 403)
+    return True
+
 
 @app.route('/image')
-@requires_auth
-def headers(payload):
+@requires_auth_permission('get:images')
+def get_image(payload):
     print(payload)
     return 'Access Granted'
+
+@app.route('/login-results')
+def get_login_results():
+    return 'Hello World!'
