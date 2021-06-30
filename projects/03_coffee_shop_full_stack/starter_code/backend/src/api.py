@@ -18,6 +18,11 @@ def after_request(response):
     response.headers.add('Access-Control-Allow-Methods', 'GET,PATCH,POST,DELETE,OPTIONS')
     return response
 
+
+@app.route('/login-results')
+def login_results():
+    return 'Welcome!'
+
 '''
 @TODO uncomment the following line to initialize the datbase
 !! NOTE THIS WILL DROP ALL RECORDS AND START YOUR DB FROM SCRATCH
